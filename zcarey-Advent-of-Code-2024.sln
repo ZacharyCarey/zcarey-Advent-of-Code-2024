@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdventOfCode", "AdventOfCode\AdventOfCode.csproj", "{BA6D27FB-C797-4CD7-A73C-F47BE76521D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Day 01", "Day 01\Day 01.csproj", "{51653B55-5806-4E62-AF27-1FD47EE2BA46}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Day 02", "Day 02\Day 02.csproj", "{6E386B62-EFCC-4DBF-8444-C8830594835C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BA6D27FB-C797-4CD7-A73C-F47BE76521D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA6D27FB-C797-4CD7-A73C-F47BE76521D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA6D27FB-C797-4CD7-A73C-F47BE76521D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA6D27FB-C797-4CD7-A73C-F47BE76521D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51653B55-5806-4E62-AF27-1FD47EE2BA46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51653B55-5806-4E62-AF27-1FD47EE2BA46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51653B55-5806-4E62-AF27-1FD47EE2BA46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51653B55-5806-4E62-AF27-1FD47EE2BA46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E386B62-EFCC-4DBF-8444-C8830594835C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E386B62-EFCC-4DBF-8444-C8830594835C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E386B62-EFCC-4DBF-8444-C8830594835C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E386B62-EFCC-4DBF-8444-C8830594835C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D38AAEB1-8E62-4694-A5F7-014DB2A3E3AD}
+	EndGlobalSection
+EndGlobal
