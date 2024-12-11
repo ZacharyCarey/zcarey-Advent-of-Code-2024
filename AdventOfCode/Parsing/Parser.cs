@@ -26,6 +26,11 @@ namespace AdventOfCode.Parsing
         {
             return input.Select(TOutput.Parse);
         }
+
+        public static TOutput Create<TOutput>(this string input) where TOutput : IObjectParser<string, TOutput>
+        {
+            return TOutput.Parse(input);
+        }
     }
 
 }
