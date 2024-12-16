@@ -2,6 +2,7 @@
 using AdventOfCode.Parsing;
 using AdventOfCode.Utils;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -103,39 +104,102 @@ namespace Day_04
         }
     }
 
-    public class CharMap : IObjectParser<IEnumerable<string>, CharMap>
+    public class CharMap : IObjectParser<IEnumerable<string>, CharMap>, IEnumerable<IEnumerable<char>>
     {
-        string[] Data;
+        char[,] Data;
         public int Width;
         public int Height;
 
         public CharMap(string[] data)
         {
-            this.Data = data;
             this.Height = data.Length;
-            this.Width = 0;
-            foreach(var str in data)
+            this.Width = data[0].Length;
+
+            this.Data = new char[Width, Height];
+            for (int y = 0; y < this.Height; y++)
             {
-                if (str.Length > Width)
+                for (int x = 0; x < this.Height; x++)
                 {
-                    Width = str.Length;
+                    this.Data[x, y] = data[y][x];
                 }
             }
         }
 
         public char this[int x, int y]
         {
-            get => Data[y][x];
+            get => Data[x, y];
+            set => Data[x, y] = value;
         }
 
         public char this[Point p]
         {
-            get => Data[p.Y][p.X];
+            get => Data[p.X, p.Y];
+            set => Data[p.X, p.Y] = value;
         }
 
         public static CharMap Parse(IEnumerable<string> input)
         {
             return new CharMap(input.ToArray());
         }
+
+        public IEnumerator<IEnumerable<char>> GetEnumerator()
+        {
+            return this.AsEnumerable().GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
+
+        public IEnumerable<IEnumerable<char>> AsEnumerable()
+        {
+            for(int y = 0; y < this.Height; y++)
+            {
+                yield return new Row(this, y);
+            }
+        }
+
+        private struct Row : IEnumerable<char>
+        {
+            private CharMap Map;
+            private int RowNum;
+
+            public Row(CharMap map, int row) {
+                this.Map = map;
+                this.RowNum = row;
+            }
+
+            public IEnumerator<char> GetEnumerator()
+            {
+                return this.AsEnumerable().GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.AsEnumerable().GetEnumerator();
+            }
+
+            private IEnumerable<char> AsEnumerable()
+            {
+                for (int x = 0; x < Map.Width; x++)
+                {
+                    yield return Map[x, RowNum];
+                }
+            }
+        }
+
+        public void Print()
+        {
+            for (int y = 0; y < this.Height; y++)
+            {
+                for (int x = 0; x < this.Width; x++)
+                {
+                    Console.Write(this.Data[x,y]);
+                }
+                Console.WriteLine();
+            }
+        }
     }
+
 }
