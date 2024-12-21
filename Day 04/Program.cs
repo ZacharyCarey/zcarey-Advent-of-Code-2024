@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Day_04
 {
@@ -104,7 +105,7 @@ namespace Day_04
         }
     }
 
-    public class CharMap : IObjectParser<IEnumerable<string>, CharMap>, IEnumerable<IEnumerable<char>>
+    public class CharMap : IObjectParser<IEnumerable<string>, CharMap>, IEnumerable<IEnumerable<char>>, IObjectParser<string, CharMap>
     {
         char[,] Data;
         public int Width;
@@ -199,6 +200,11 @@ namespace Day_04
                 }
                 Console.WriteLine();
             }
+        }
+
+        public static CharMap Parse(string input)
+        {
+            return CharMap.Parse(input.GetLines());
         }
     }
 
