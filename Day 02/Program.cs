@@ -5,6 +5,7 @@ using Day_01;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 
 namespace Day_02
@@ -132,6 +133,11 @@ namespace Day_02
             get => Data[y][x];
         }
 
+        public int this[Point p]
+        {
+            get => Data[p.Y][p.X];
+        }
+
         public IntMap(IntArray[] rows)
         {
             this.Data = rows;
@@ -160,6 +166,20 @@ namespace Day_02
             return new IntMap(
                 input.Create<string, IntArray>().ToArray()
             );
+        }
+
+        public static IntMap Parse(IEnumerable<string> input, bool compressed)
+        {
+            if (compressed)
+            {
+                return new IntMap(input.Select(x => IntArray.Parse(x, compressed)).ToArray());
+            }
+            else
+            {
+                return new IntMap(
+                    input.Create<string, IntArray>().ToArray()
+                );
+            }
         }
 
         public IEnumerator<IntArray> GetEnumerator()

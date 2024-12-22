@@ -97,6 +97,16 @@ namespace Day_01
             );
         }
 
+        public static IntArray Parse(string line, bool compressed)
+        {
+            if (compressed) {
+                return new IntArray(line.AsEnumerable().Select(x => int.Parse(x.ToString())).ToArray());
+            } else
+            {
+                return Parse(line);
+            }
+        }
+
         public IEnumerator<int> GetEnumerator()
         {
             return this.Values.AsEnumerable().GetEnumerator();
