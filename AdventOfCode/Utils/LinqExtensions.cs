@@ -45,5 +45,15 @@ namespace AdventOfCode.Utils
             }
         }
 
+        public static IEnumerable<T> AsEnumerable<T>(this T[,] array)
+        {
+            for(int y = 0; y < array.GetLength(1); y++)
+            {
+                for (int x = 0; x < array.GetLength(0); x++)
+                {
+                    yield return array[x, y];
+                }
+            }
+        }
     }
 }
