@@ -13,5 +13,10 @@ namespace AdventOfCode.Utils
         {
             return Math.Abs(left.X - right.X) + Math.Abs(left.Y - right.Y);
         }
+
+        public static long ManhattanDistance(this LargePoint left, LargePoint right)
+        {
+            return Math.Abs(left.X - right.X) + Math.Abs(left.Y - right.Y);
+        }
     }
 }
