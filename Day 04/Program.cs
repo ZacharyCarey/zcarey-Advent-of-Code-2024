@@ -119,7 +119,7 @@ namespace Day_04
             this.Data = new char[Width, Height];
             for (int y = 0; y < this.Height; y++)
             {
-                for (int x = 0; x < this.Height; x++)
+                for (int x = 0; x < this.Width; x++)
                 {
                     this.Data[x, y] = data[y][x];
                 }
@@ -136,6 +136,11 @@ namespace Day_04
         {
             get => Data[p.X, p.Y];
             set => Data[p.X, p.Y] = value;
+        }
+
+        public IEnumerable<char> GetRow(int y)
+        {
+            return new Row(this, y);
         }
 
         public static CharMap Parse(IEnumerable<string> input)
@@ -205,6 +210,20 @@ namespace Day_04
         public static CharMap Parse(string input)
         {
             return CharMap.Parse(input.GetLines());
+        }
+
+        public IEnumerable<(Point Position, char Value)> AllPoints
+        {
+            get
+            {
+                for (int y = 0; y < this.Height; y++)
+                {
+                    for (int x = 0; x < this.Width; x++)
+                    {
+                        yield return (new Point(x, y), this[x, y]);
+                    }
+                }
+            }
         }
     }
 
