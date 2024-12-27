@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TVGL;
 
 namespace AdventOfCode.Utils
 {
@@ -72,7 +73,7 @@ namespace AdventOfCode.Utils
             Dijkstra<T> result = new(map, source, int.MaxValue);
             result.Map[source.Y][source.X].Distance = 0;
 
-            CustomPriorityQueue<LargePoint> queue = new(true);
+            UpdatablePriorityQueue<LargePoint, int> queue = new();
             for (int y = 0; y < result.Height; y++)
             {
                 for (int x = 0; x < result.Width; x++)
@@ -98,7 +99,7 @@ namespace AdventOfCode.Utils
                     {
                         result.Map[v.Y][v.X].Distance = alt;
                         result.Map[v.Y][v.X].Previous = u;
-                        queue.UpdatePriority(v, alt, (x, y) => x == y);
+                        queue.UpdatePriority(v, alt);
                     }
                 }
             }
