@@ -12,7 +12,6 @@ namespace Day_16
 {
     internal class Program : ProgramStructure<Maze>
     {
-        private long part1 = -1;
         Program() : base(Maze.Parse)
         { }
 
@@ -25,59 +24,43 @@ namespace Day_16
 
         protected override object SolvePart1(Maze input)
         {
-            PriorityQueue<(long cost, Reindeer state), long> nodesToProcess = new();
-            Dictionary<Reindeer, long> seen = new();
-            seen[input.Start] = 0;
-            nodesToProcess.Enqueue((0, input.Start), 0);
-
-            while (nodesToProcess.Count > 0)
+            Func<Reindeer, bool> isEnd = (Reindeer node) =>
             {
-                (long curCost, Reindeer curState) = nodesToProcess.Dequeue();
-                if (curState.Position == input.End) return curCost;
-                if (seen.GetValueOrDefault(curState, long.MaxValue) < curCost) continue;
-                seen[curState] = curCost;
+                return node.Position == input.End;
+            };
 
-                foreach(var neighbor in GetNeighbors(input, curState))
-                {
-                    long newCost = curCost + neighbor.Cost;
-                    nodesToProcess.Enqueue((newCost, neighbor.Edge), newCost);
-                }
-            }
+            Func<Reindeer, IEnumerable<(Reindeer, long)>> getNeighbors = (Reindeer node) =>
+            {
+                return GetNeighbors(input, node);
+            };
 
-            return -1;
+            return Dijkstra.Search(input.Start, isEnd, getNeighbors).Select(x => x.Cost).First();
         }
 
         protected override object SolvePart2(Maze input)
         {
-            PriorityQueue<(long cost, Reindeer state, HashSet<Point> visited), long> nodesToProcess = new();
-            Dictionary<Reindeer, long> seen = new();
-            HashSet<Point> bestSeats = new();
-            bestSeats.Add(input.Start.Position);
-            seen[input.Start] = 0;
-            nodesToProcess.Enqueue((0, input.Start, new()), 0);
-            long bestScore = long.MaxValue;
-            while (nodesToProcess.Count > 0)
+            Func<Reindeer, bool> isEnd = (Reindeer node) =>
             {
-                (long curCost, Reindeer curState, var visited) = nodesToProcess.Dequeue();
-                if (curCost > bestScore) break;
-                if (curState.Position == input.End)
-                {
-                    bestScore = curCost;
-                    bestSeats.UnionWith(visited);
-                }
-                if (seen.GetValueOrDefault(curState, long.MaxValue) < curCost) continue;
-                seen[curState] = curCost;
+                return node.Position == input.End;
+            };
 
-                foreach(var neighbor in GetNeighbors(input, curState))
+            Func<Reindeer, IEnumerable<(Reindeer, long)>> getNeighbors = (Reindeer node) =>
+            {
+                return GetNeighbors(input, node);
+            };
+
+            var allPaths = Dijkstra.Search(input.Start, isEnd, getNeighbors);
+
+            HashSet<Point> allSeats = new();
+            foreach(var path in allPaths.Select(x => x.Path))
+            {
+                foreach(var seat in path.Select(x => x.Position))
                 {
-                    HashSet<Point> seenLocs = new(visited);
-                    seenLocs.Add(neighbor.Edge.Position);
-                    long newCost = curCost + neighbor.Cost;
-                    nodesToProcess.Enqueue((newCost, neighbor.Edge, seenLocs), newCost);
+                    allSeats.Add(seat);
                 }
             }
 
-            return bestSeats.Count;
+            return allSeats.Count;
         }
 
         private static IEnumerable<(Reindeer Edge, long Cost)> GetNeighbors(Maze maze, Reindeer state)

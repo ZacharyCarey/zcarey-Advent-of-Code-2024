@@ -2,130 +2,166 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using TVGL;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AdventOfCode.Utils
 {
-    public class Dijkstra<T>
+    public static class Dijkstra
     {
 
-        public struct Node
+        // Returns all shortest paths
+        /*public static IEnumerable<(long Cost, List<T> Path)> Search<T>(T start)
         {
-            public T Element;
-            public int Distance;
-            public LargePoint? Previous;
-        }
+            PriorityQueue<(T Node, long Cost, T CameFrom), long> nodesToProcess = new();
+            nodesToProcess.Enqueue((start, 0), 0);
 
-        private readonly Node[][] Map;
-        public readonly int Width;
-        public readonly int Height;
-        public readonly LargePoint Source;
+            Dictionary<T, long> visited = new();
+            visited[start] = 0;
 
-        private Dijkstra(T[][] map, LargePoint source, int initialDistance)
-        {
-            this.Source = source;
-            Map = new Node[map.Length][];
-            Width = map[0].Length;
-            Height = map.Length;
-            for (int y = 0; y < Height; y++)
+            Dictionary<T, T> cameFrom = new();
+            cameFrom[start] = start;
+
+            long bestCost = long.MaxValue;
+
+            while (nodesToProcess.Count > 0)
             {
-                Map[y] = new Node[Width];
-                for (int x = 0; x < Width; x++)
+                (T node, long cost, T source) = nodesToProcess.Dequeue();
+                
+                if (node.Position == input.End)
                 {
-                    Map[y][x] = new Node();
-                    Map[y][x].Element = map[y][x];
-                    Map[y][x].Distance = initialDistance;
-                    Map[y][x].Previous = null;
+                    cameFrom
+                    yield return GetPath();
+                }
+                if (visited.GetValueOrDefault(node, long.MaxValue) < cost)
+                {
+                    visited[node] = cost;
+                    cameFrom[node] = source;
+                }
+
+                foreach(var neighbor in GetNeighbots(node))
+                {
+                    long newCost = cost + neighbor.Cost;
+                    nodesToProcess.Enqueue((neighbor.Edge, newCost, node));
                 }
             }
+        }*/
+
+        public static IEnumerable<(long Cost, List<T> Path)> Search<T>(T start, T end, Func<T, IEnumerable<(T Node, long Cost)>> getNeighbors) where T : IEqualityOperators<T, T, bool>
+        {
+            return Search(start, node => node == end, getNeighbors);
         }
 
-        public Node this[int x, int y]
+        // Returns all shortest paths
+        public static IEnumerable<(long Cost, List<T> Path)> Search<T>(T start, Func<T, bool> isEnd, Func<T, IEnumerable<(T Node, long Cost)>> getNeighbors) where T : IEqualityOperators<T, T, bool>
         {
-            get => Map[y][x];
-        }
+            // https://en.wikipedia.org/wiki/Dijkstra's_algorithm#Using_a_priority_queue
+            // Uses some alternate options since updating the priority is not available, and not
+            // all nodes are known during initialization
+            Dictionary<T, List<T>> prev = new();
+            HashSet<T> endNodes = new();
+            long lowestCost = long.MaxValue;
 
-        public Node this[LargePoint p]
-        {
-            get => Map[p.Y][p.X];
-        }
+            // create vertex priority queue Q
+            PriorityQueue<T, long> Q = new();
 
-        public IEnumerable<(Node Node, LargePoint Location)> GetPathToSource(LargePoint start)
-        {
-            LargePoint p = start;
-            while (p != Source)
+            // dist[source] ← 0                          // Initialization
+            Dictionary<T, long> dist = new();
+            dist[start] = 0;
+
+            // Q.add_with_priority(source, 0)            // associated priority equals dist[·]
+            Q.Enqueue(start, 0);
+
+            // while Q is not empty:                     // The main loop
+            while (Q.Count > 0)
             {
-                yield return (Map[p.Y][p.X], p);
-                p = (LargePoint)Map[p.Y][p.X].Previous;
-            }
-            yield return (Map[p.Y][p.X], p);
-        }
+                // u ← Q.extract_min()                   // Remove and return best vertex
+                var u = Q.Dequeue();
 
-        // Distance formula args: (From, To)
-        public static Dijkstra<T> Generate(T[][] map, LargePoint source, Func<(LargePoint, T), (LargePoint, T), int> Distance = null)
-        {
-            if (Distance == null)
-            {
-                Distance = ((LargePoint p1, T t1) a, (LargePoint p2, T t2) b) => 1;
-            }
-            Dijkstra<T> result = new(map, source, int.MaxValue);
-            result.Map[source.Y][source.X].Distance = 0;
-
-            UpdatablePriorityQueue<LargePoint, int> queue = new();
-            for (int y = 0; y < result.Height; y++)
-            {
-                for (int x = 0; x < result.Width; x++)
+                if (isEnd(u))
                 {
-                    queue.Enqueue(new LargePoint(x, y), result.Map[y][x].Distance);
+                    endNodes.Add(u);
+                    lowestCost = Math.Min(lowestCost, dist[u]);
+                    continue;
                 }
-            }
 
-            while (queue.Count > 0)
-            {
-                LargePoint u = queue.Dequeue();
-                foreach (LargePoint v in result.GetNeighbors(u))
-                {
-                    int travelDist = Distance((u, map[u.Y][u.X]), (v, map[v.Y][v.X]));
-                    if (travelDist == int.MaxValue)
+                // for each neighbor v of u:             // Go through all v neighbors of u
+                foreach ((T v, long cost) in getNeighbors(u)) { 
+                    // alt ← dist[u] + Graph.Edges(u, v)
+                    long alt = dist[u] + cost;
+
+                    // if alt < dist[v]:
+                    long neighborDist = dist.GetValueOrDefault(v, long.MaxValue);
+                    if (alt < neighborDist)
                     {
-                        // Assume this neighbor can't be traveled to
-                        continue;
-                    }
+                        // prev[v] ← u
+                        prev[v] = [u];
 
-                    int alt = (int)Math.Min((long)result.Map[u.Y][u.X].Distance + (long)travelDist, int.MaxValue);
-                    if (alt < result.Map[v.Y][v.X].Distance)
+                        // dist[v] ← alt
+                        dist[v] = alt;
+
+                        // Q.add_with_priority(v, alt)
+                        Q.Enqueue(v, alt);
+                    } else if (alt == neighborDist)
                     {
-                        result.Map[v.Y][v.X].Distance = alt;
-                        result.Map[v.Y][v.X].Previous = u;
-                        queue.UpdatePriority(v, alt);
+                        // Used to find ALL lowest paths
+                        prev[v].Add(u);
                     }
                 }
             }
 
-            return result;
+            
+            foreach (var endNode in endNodes)
+            {
+                long cost = dist[endNode];
+                if (cost == lowestCost)
+                {
+                    foreach (var path in GetPath(prev, start, endNode, new List<T>()))
+                    {
+                        yield return (cost, path);
+                    }
+                }
+            }
         }
 
-        private IEnumerable<LargePoint> GetNeighbors(LargePoint p)
+        private static IEnumerable<List<T>> GetPath<T>(Dictionary<T, List<T>> prev, T start, T node, List<T> path) where T : IEqualityOperators<T, T, bool>
         {
-            if (p.X < Width - 1)
+            List<T> prevNodes;
+            while (node != start)
             {
-                yield return new LargePoint(p.X + 1, p.Y);
+                path.Add(node);
+
+                prevNodes = prev[node];
+                foreach(var n in prevNodes.Skip(1))
+                {
+                    IEnumerable<List<T>> otherPaths = GetPath(prev, start, n, new List<T>(path));
+                    foreach(var p in otherPaths)
+                    {
+                        yield return p;
+                    }
+                }
+
+                node = prevNodes[0];
             }
-            if (p.Y < Height - 1)
-            {
-                yield return new LargePoint(p.X, p.Y + 1);
-            }
-            if (p.X > 0)
-            {
-                yield return new LargePoint(p.X - 1, p.Y);
-            }
-            if (p.Y > 0)
-            {
-                yield return new LargePoint(p.X, p.Y - 1);
-            }
+
+            // The start has been reached
+            path.Add(start);
+            ReverseList(path);
+            yield return path;
         }
 
+        private static void ReverseList<T>(List<T> list)
+        {
+            T temp;
+            for (int i = 0; i < list.Count / 2; i++) {
+                int j = list.Count - i - 1;
+                temp = list[i];
+                list[i] = list[j];
+                list[j] = temp;
+            }
+        }
     }
 }
