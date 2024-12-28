@@ -13,50 +13,13 @@ namespace AdventOfCode.Utils
     public static class Dijkstra
     {
 
-        // Returns all shortest paths
-        /*public static IEnumerable<(long Cost, List<T> Path)> Search<T>(T start)
+        public static IEnumerable<(long Cost, List<T> Path)> Search<T>(T start, T end, Func<T, IEnumerable<(T Node, long Cost)>> getNeighbors) where T : IEquatable<T>
         {
-            PriorityQueue<(T Node, long Cost, T CameFrom), long> nodesToProcess = new();
-            nodesToProcess.Enqueue((start, 0), 0);
-
-            Dictionary<T, long> visited = new();
-            visited[start] = 0;
-
-            Dictionary<T, T> cameFrom = new();
-            cameFrom[start] = start;
-
-            long bestCost = long.MaxValue;
-
-            while (nodesToProcess.Count > 0)
-            {
-                (T node, long cost, T source) = nodesToProcess.Dequeue();
-                
-                if (node.Position == input.End)
-                {
-                    cameFrom
-                    yield return GetPath();
-                }
-                if (visited.GetValueOrDefault(node, long.MaxValue) < cost)
-                {
-                    visited[node] = cost;
-                    cameFrom[node] = source;
-                }
-
-                foreach(var neighbor in GetNeighbots(node))
-                {
-                    long newCost = cost + neighbor.Cost;
-                    nodesToProcess.Enqueue((neighbor.Edge, newCost, node));
-                }
-            }
-        }*/
-
-        public static IEnumerable<(long Cost, List<T> Path)> Search<T>(T start, T end, Func<T, IEnumerable<(T Node, long Cost)>> getNeighbors) where T : IEqualityOperators<T, T, bool>
-        {
-            return Search(start, node => node == end, getNeighbors);
+            return Search(start, node => node.Equals(end), getNeighbors);
         }
 
         // Returns all shortest paths
-        public static IEnumerable<(long Cost, List<T> Path)> Search<T>(T start, Func<T, bool> isEnd, Func<T, IEnumerable<(T Node, long Cost)>> getNeighbors) where T : IEqualityOperators<T, T, bool>
+        public static IEnumerable<(long Cost, List<T> Path)> Search<T>(T start, Func<T, bool> isEnd, Func<T, IEnumerable<(T Node, long Cost)>> getNeighbors) where T : IEquatable<T>
         {
             // https://en.wikipedia.org/wiki/Dijkstra's_algorithm#Using_a_priority_queue
             // Uses some alternate options since updating the priority is not available, and not
@@ -127,10 +90,10 @@ namespace AdventOfCode.Utils
             }
         }
 
-        private static IEnumerable<List<T>> GetPath<T>(Dictionary<T, List<T>> prev, T start, T node, List<T> path) where T : IEqualityOperators<T, T, bool>
+        private static IEnumerable<List<T>> GetPath<T>(Dictionary<T, List<T>> prev, T start, T node, List<T> path) where T : IEquatable<T>
         {
             List<T> prevNodes;
-            while (node != start)
+            while (!node.Equals(start))
             {
                 path.Add(node);
 

@@ -90,7 +90,7 @@ namespace Day_16
         }
     }
 
-    internal struct Reindeer : IEqualityOperators<Reindeer, Reindeer, bool>
+    internal struct Reindeer : IEqualityOperators<Reindeer, Reindeer, bool>, IEquatable<Reindeer>
     {
         public Point Position;
         public int X => Position.X;
@@ -145,6 +145,11 @@ namespace Day_16
         public override int GetHashCode()
         {
             return HashCode.Combine(this.Position.GetHashCode(), this.DirectionIndex.GetHashCode());
+        }
+
+        public bool Equals(Reindeer other)
+        {
+            return this == other;
         }
     }
 
