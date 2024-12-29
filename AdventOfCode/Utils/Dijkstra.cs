@@ -126,5 +126,135 @@ namespace AdventOfCode.Utils
                 list[j] = temp;
             }
         }
+
+        // Version optimized for simple 2D arrays
+        public static IEnumerable<List<Point>> Search(bool[,] graph, Point start, Point end, out long? lowestCostPath, out long[,] costMap)
+        {
+            return Search(graph, start, end, node => node, out lowestCostPath, out costMap);
+        }
+
+        // Version optimized for simple 2D arrays
+        // Returns all shortest paths
+        public static IEnumerable<List<Point>> Search<T>(T[,] graph, Point start, Point end, Func<T, bool> isTraversable, out long? lowestCostPath, out long[,] costMap)
+        {
+            // https://en.wikipedia.org/wiki/Dijkstra's_algorithm#Using_a_priority_queue
+            // Uses some alternate options since updating the priority is not available, and not
+            // all nodes are known during initialization
+            int width = graph.GetLength(0);
+            int height = graph.GetLength(1);
+            List<Point>[,] prev = new List<Point>[width, height]; 
+
+            // create vertex priority queue Q
+            PriorityQueue<Point, long> Q = new();
+
+            // dist[source] ← 0                          // Initialization
+            long[,] dist = new long[width, height];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    dist[x, y] = long.MaxValue;
+                }
+            }
+            dist[start.X, start.Y] = 0;
+
+            // Q.add_with_priority(source, 0)            // associated priority equals dist[·]
+            Q.Enqueue(start, 0);
+
+            // while Q is not empty:                     // The main loop
+            while (Q.Count > 0)
+            {
+                // u ← Q.extract_min()                   // Remove and return best vertex
+                var u = Q.Dequeue();
+
+                if (u == end)
+                {
+                    continue;
+                }
+
+                // for each neighbor v of u:             // Go through all v neighbors of u
+                foreach (Point v in GetNeighbors(graph, width, height, u, isTraversable))
+                {
+                    // alt ← dist[u] + Graph.Edges(u, v)
+                    long alt = dist[u.X, u.Y] + 1; // Fixed cost
+
+                    // if alt < dist[v]:
+                    long neighborDist = dist[v.X, v.Y];
+                    if (alt < neighborDist)
+                    {
+                        // prev[v] ← u
+                        List<Point> previous = prev[v.X, v.Y];
+                        if (previous == null)
+                        {
+                            previous = new();
+                            prev[v.X, v.Y] = previous;
+                        }
+                        previous.Clear();
+                        previous.Add(u);
+
+                        // dist[v] ← alt
+                        dist[v.X, v.Y] = alt;
+
+                        // Q.add_with_priority(v, alt)
+                        Q.Enqueue(v, alt);
+                    }
+                    else if (alt == neighborDist)
+                    {
+                        // Used to find ALL lowest paths
+                        List<Point> previous = prev[v.X, v.Y];
+                        if (previous == null)
+                        {
+                            previous = new();
+                            prev[v.X, v.Y] = previous;
+                        }
+                        previous.Add(u);
+                    }
+                }
+            }
+
+            costMap = dist;
+            lowestCostPath = dist[end.X, end.Y];
+            if (lowestCostPath == long.MaxValue)
+            {
+                lowestCostPath = null;
+            }
+            return GetPath(prev, start, end, new List<Point>());
+        }
+
+        private static IEnumerable<Point> GetNeighbors<T>(T[,] graph, int w, int h, Point p, Func<T, bool> isTraversable)
+        {
+            if (p.X > 0 && isTraversable(graph[p.X - 1, p.Y])) yield return new Point(p.X - 1, p.Y);
+            if (p.X < w - 1 && isTraversable(graph[p.X + 1, p.Y])) yield return new Point(p.X + 1, p.Y);
+            if (p.Y > 0 && isTraversable(graph[p.X, p.Y - 1])) yield return new Point(p.X, p.Y - 1);
+            if (p.Y < h - 1 && isTraversable(graph[p.X, p.Y + 1])) yield return new Point(p.X, p.Y + 1);
+        }
+
+        private static IEnumerable<List<Point>> GetPath(List<Point>[,] prev, Point start, Point node, List<Point> path)
+        {
+            List<Point> prevNodes;
+            while (node != start)
+            {
+                path.Add(node);
+
+                prevNodes = prev[node.X, node.Y];
+                if (prevNodes == null || prevNodes.Count == 0) yield break; // Dead end or end was unable to be reached
+
+                foreach (var n in prevNodes.Skip(1))
+                {
+                    IEnumerable<List<Point>> otherPaths = GetPath(prev, start, n, new List<Point>(path));
+                    foreach (var p in otherPaths)
+                    {
+                        yield return p;
+                    }
+                }
+
+                node = prevNodes[0];
+            }
+
+            // The start has been reached
+            path.Add(start);
+            ReverseList(path);
+            yield return path;
+        }
     }
 }
